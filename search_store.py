@@ -8,8 +8,10 @@
 #
 # WARNING! All changes made in this file will be lost!
 import os,PySide2,sys,sqlite3,json
-from oops import Ui_OopsProject
+import numpy as np
+from Ui_oops import Ui_OopsProject
 from openpyxl import load_workbook
+
 from requests import get
 
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -17,40 +19,88 @@ dirname = os.path.dirname(PySide2.__file__)
 plugin_path = os.path.join(dirname, 'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 
 
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        self.ui = Ui_OopsProject()
         
+        self.ui.setupUi(self)
         self.creater()
         self.download("http://haeam.zz.am/rex.xlsx","rex.xlsx")
         # super(MainWindow, self).__init__(parent=parent)
-        self.ui = Ui_OopsProject()
-        self.ui.setupUi(self)
         
+        # self.tableFields = ["검색어","광고진행여부","검색카테고리"]
+        # self.ui.tableWidget.setColumnCount(len(self.tableFields))
+        # self.ui.tableWidget.setHorizontalHeaderLabels(self.tableFields)
+        self.ui.tableWidget.horizontalHeader().resizeSection(1, 330)
+        self.ui.tableWidget.horizontalHeader().resizeSection(2, 10)
+        self.ui.tableWidget.setStyleSheet("font: 11px \"맑은 고딕\";")
+        
+        # self.ui.tableWidget.setFrameShape(QFrame.StyledPanel)
+        # self.ui.tableWidget.setFrameShadow(QFrame.Plain)
+        self.ui.tableWidget.horizontalHeader().hide()
+        self.ui.tableWidget.verticalHeader().hide()
+        
+        # self.ui.tableWidget.setLineWidth(200)
+        # self.ui.tableWidget.setMidLineWidth(0)
+        self.ui.tableWidget.setDragEnabled(True)
+        self.ui.tableWidget.setAlternatingRowColors(True)
+        # self.ui.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # self.ui.tableWidget.setTextElideMode(Qt.ElideRight)
+        # self.ui.tableWidget.setShowGrid(True)
+        # self.ui.tableWidget.setGridStyle(Qt.CustomDashLine)
+        # self.ui.tableWidget.setWordWrap(True)
+        self.ui.tableWidget.setColumnCount(2)
+        
+        # r = self.ui.tableWidget.rowCount()
+        # c = self.ui.tableWidget.columnCount()
+        # print(r, c)
+        title = ['영업그룹','판매처','PCODE','핸드폰번호','핸드폰번호2','전화번호','미수금']
+        title_count = len(title)
+        self.ui.tableWidget.setRowCount(title_count)
+        for x in range(title_count):
+            self.ui.tableWidget.setRowHeight(x,20)
+            self.ui.tableWidget.setColumnWidth(0, 70)
+            self.ui.tableWidget.setColumnWidth(1, 165)
+            self.ui.tableWidget.setItem( x,0,QTableWidgetItem(title[x]))
+        
+        QtCore.QObject.connect(self.ui.actionLoad_Data, QtCore.SIGNAL("triggered(bool)"), self.loadData)
+        QtCore.QObject.connect(self.ui.actionExit, QtCore.SIGNAL("triggered(bool)"), self.close)
+        # QtCore.QObject.connect(self.ui.lineEdit, QtCore.SIGNAL("textChanged(QString)"), self.realtime)
+        QtCore.QObject.connect(self.ui.lineEdit, QtCore.SIGNAL("returnPressed()"), self.search)
+        QtCore.QObject.connect(self.ui.listWidget, QtCore.SIGNAL("itemSelectionChanged()"), self.deep_search)
+        
+        # QtCore.QObject.connect(self.ui.actionExit, QtCore.SIGNAL("toggled(bool)"), OopsProject.close)
         # msg.setText("This is a message box")
     
     def download(self, url, file_name):
+        self.ui.statusbar.showMessage("데이터를 다운로드 중입니다.")
         # open in binary mode
         with open(file_name, "wb") as file:
             # get request
             response = get(url)
             # write to file
             file.write(response.content)
+        self.ui.statusbar.showMessage("원격 데이터가져오기 완료")
+        # print("원격 데이터가져오기 완료")
         self.dataProcess("rex.xlsx","")
 
     def creater(self):
+        self.ui.statusbar.showMessage("데이터 구성중입니다.")
         self.con = sqlite3.connect(':memory:')
-        self.con.row_factory = lambda cursor, row: row[0]
+        # self.con.row_factory = lambda cursor, row: row[0]
         self.cur = self.con.cursor()
-        
-        query = "CREATE TABLE oops(영업그룹 TEXT,판매처 TEXT,PCODE TEXT,핸드폰번호 TEXT,핸드폰번호2 TEXT,전화번호 TEXT, 전일미수 FLOAT);" # 테이블 생성 쿼리
+        # self.cur.execute("DROP TABLE oops")
+        query = "CREATE TABLE oops(영업그룹 TEXT,판매처 TEXT,PCODE TEXT,핸드폰번호 TEXT,핸드폰번호2 TEXT,전화번호 TEXT, 전일미수 INT);" # 테이블 생성 쿼리
         self.cur.execute(query)              # 쿼리 실행
         # self.cur.execute("PRAGMA table_info(oops)")
-        self.cur.execute("select * from oops")
-        # print(self.cur.fetchall())
+        self.con.commit()
         
 
         # print(data)
@@ -59,16 +109,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def realtime(self,text):
         self.cur.execute("SELECT 판매처 FROM oops where 판매처 like '%"+text+"%'")
-        result = self.cur.fetchall()
-        print(result)
+        result = [row[0] for row in self.cur]
+            # print (row[0])
+        # result = self.cur.fetchall()
+        # print(result)
         self.model = QtCore.QStringListModel()
         self.model.setStringList(result)        
         completer = QtWidgets.QCompleter()
         completer.setModel(self.model)
         self.ui.lineEdit.setCompleter(completer)
 
-    def search(self):
-        
+    def search(self):   
+
         self.ui.listWidget.clear()
         text = self.ui.lineEdit.text()
         print(text)
@@ -76,7 +128,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # print("SELECT * FROM oops where 판매처 like '%"+text+"%'")
         self.cur.execute("SELECT 판매처 FROM oops where 판매처 like '%"+text+"%'")
         
-        result = self.cur.fetchall()
+        result = [row[0] for row in self.cur]
         # print(result)
         
         for x in result:
@@ -84,9 +136,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.listWidget.setCurrentRow(0)
         # print(result)
     
+    def deep_search(self):
+        판매처 = self.ui.listWidget.currentItem().text()   
+
+        self.cur.execute("SELECT * FROM oops where 판매처='"+판매처+"'")
+        x=0
+        # print(self.cur.fetchall()[0])
+        for row in self.cur.fetchall()[0]:
+            # print(x, row)
+            xrow = str(row)
+            if xrow == "None":
+                xrow = ""
+            try:
+                self.ui.tableWidget.setItem( x,1,QTableWidgetItem(xrow))
+            except:
+                self.ui.tableWidget.setItem( x,1,QTableWidgetItem(""))
+            x=x+1
+        # print(result)    
+    
     def loadData(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, '엑셀파일 선택', "*.xlsx")
-        self.deataProcess(fname[0], "데이터가 저장되었습니다")
+        self.dataProcess(fname[0], "데이터가 저장되었습니다")
         print(fname[0])
         
     def dataProcess(self,fname, message):
@@ -107,26 +177,31 @@ class MainWindow(QtWidgets.QMainWindow):
                 angel.append(a)
             angel.append(0)
             
-            # print(angel, type(angel))
-            # print("insert into oops values(?,?,?,?,?,?,?)", angel)
-            self.cur.execute("insert into oops values(?,?,?,?,?,?,?)", angel)
-            
+            self.cur.execute("""insert into oops values(?,?,?,?,?,?,?)""", angel)
+        
+        미수금 = angelEx['Sheet1']
+        for i in 미수금.rows:
+            # print(i[14].value, i[3].value)
+            self.cur.execute("update oops set 전일미수='"+str(i[14].value)+"' where 판매처='"+i[3].value+"'")
+        
+        self.con.commit()
         # x2 = (14)
-
+        print("데이터 입력완료.")
         # print(angels)
         if message:
             QtWidgets.QMessageBox.about(None, "완료", message)
-        # self.cur.execute("SELECT * FROM oops")
-        # print(self.cur.fetchall())
+        self.cur.execute("""SELECT * FROM oops""")
+        all_rows = self.cur.fetchall()
+        for i in all_rows:
+            print(i)
 
-    def exit(self):
-        self.quit()
         
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
+    QApplication.setStyle(QStyleFactory.create('Fusion'))
     w = MainWindow()
     w.show()
     
