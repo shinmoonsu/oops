@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>259</width>
+    <width>261</width>
     <height>409</height>
    </rect>
   </property>
@@ -17,10 +17,10 @@
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>5</x>
       <y>10</y>
-      <width>241</width>
-      <height>21</height>
+      <width>251</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
@@ -35,11 +35,18 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>13</x>
-      <y>39</y>
+      <x>10</x>
+      <y>46</y>
       <width>81</width>
       <height>19</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>맑은 고딕</family>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>검색된 판매처</string>
@@ -48,11 +55,18 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>12</x>
+      <x>10</x>
       <y>170</y>
       <width>70</width>
       <height>19</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>맑은 고딕</family>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>판매처 정보</string>
@@ -61,9 +75,9 @@
    <widget class="QListWidget" name="listWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>60</y>
-      <width>241</width>
+      <x>5</x>
+      <y>66</y>
+      <width>251</width>
       <height>101</height>
      </rect>
     </property>
@@ -71,9 +85,9 @@
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>5</x>
       <y>190</y>
-      <width>241</width>
+      <width>251</width>
       <height>171</height>
      </rect>
     </property>
@@ -84,7 +98,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>259</width>
+     <width>261</width>
      <height>20</height>
     </rect>
    </property>
@@ -93,6 +107,7 @@
      <string>파일</string>
     </property>
     <addaction name="actionLoad_Data"/>
+    <addaction name="action"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -112,7 +127,15 @@
     <string>종료</string>
    </property>
    <property name="shortcut">
-    <string/>
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>환경설정</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
  </widget>

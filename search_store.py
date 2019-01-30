@@ -10,6 +10,7 @@
 import os,PySide2,sys,sqlite3,json
 import numpy as np
 from Ui_oops import Ui_OopsProject
+from Ui_environment import Ui_Dialog
 from openpyxl import load_workbook
 
 from requests import get
@@ -23,7 +24,11 @@ from PySide2.QtWidgets import *
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 
-
+class MainWindow2(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_Dialog()        
+        self.ui.setupUi(self)
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -38,9 +43,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.tableFields = ["검색어","광고진행여부","검색카테고리"]
         # self.ui.tableWidget.setColumnCount(len(self.tableFields))
         # self.ui.tableWidget.setHorizontalHeaderLabels(self.tableFields)
-        self.ui.tableWidget.horizontalHeader().resizeSection(1, 330)
-        self.ui.tableWidget.horizontalHeader().resizeSection(2, 10)
-        self.ui.tableWidget.setStyleSheet("font: 11px \"맑은 고딕\";")
+        # self.ui.tableWidget.horizontalHeader().resizeSection(1, 330)
+        # self.ui.tableWidget.horizontalHeader().resizeSection(2, 10)
+        self.ui.tableWidget.setStyleSheet("font: 12px \"맑은 고딕\";")
         
         # self.ui.tableWidget.setFrameShape(QFrame.StyledPanel)
         # self.ui.tableWidget.setFrameShadow(QFrame.Plain)
@@ -57,24 +62,27 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.ui.tableWidget.setGridStyle(Qt.CustomDashLine)
         # self.ui.tableWidget.setWordWrap(True)
         self.ui.tableWidget.setColumnCount(2)
-        
+        self.ui.statusbar.setStyleSheet("font: 10px \"맑은 고딕\";")
+        self.ui.lineEdit.setStyleSheet("weight : bold; font: 14px \"맑은 고딕\";background:#defcbc;")
         # r = self.ui.tableWidget.rowCount()
         # c = self.ui.tableWidget.columnCount()
         # print(r, c)
-        title = ['영업그룹','판매처','PCODE','핸드폰번호','핸드폰번호2','전화번호','미수금']
+        title = ['영업그룹','판매처','PCODE','핸드폰번호','핸드폰번호2','전화번호','전일미수','수납가능여부']
         title_count = len(title)
         self.ui.tableWidget.setRowCount(title_count)
         for x in range(title_count):
             self.ui.tableWidget.setRowHeight(x,20)
-            self.ui.tableWidget.setColumnWidth(0, 70)
-            self.ui.tableWidget.setColumnWidth(1, 165)
+            self.ui.tableWidget.setColumnWidth(0, 79)
+            self.ui.tableWidget.setColumnWidth(1, 170)
             self.ui.tableWidget.setItem( x,0,QTableWidgetItem(title[x]))
         
         QtCore.QObject.connect(self.ui.actionLoad_Data, QtCore.SIGNAL("triggered(bool)"), self.loadData)
         QtCore.QObject.connect(self.ui.actionExit, QtCore.SIGNAL("triggered(bool)"), self.close)
+        QtCore.QObject.connect(self.ui.action, QtCore.SIGNAL("triggered(bool)"), self.open_environment)
         # QtCore.QObject.connect(self.ui.lineEdit, QtCore.SIGNAL("textChanged(QString)"), self.realtime)
         QtCore.QObject.connect(self.ui.lineEdit, QtCore.SIGNAL("returnPressed()"), self.search)
         QtCore.QObject.connect(self.ui.listWidget, QtCore.SIGNAL("itemSelectionChanged()"), self.deep_search)
+        
         
         # QtCore.QObject.connect(self.ui.actionExit, QtCore.SIGNAL("toggled(bool)"), OopsProject.close)
         # msg.setText("This is a message box")
@@ -126,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         print(text)
         # self.ui.lineEdit.selectAll()
         # print("SELECT * FROM oops where 판매처 like '%"+text+"%'")
-        self.cur.execute("SELECT 판매처 FROM oops where 판매처 like '%"+text+"%'")
+        self.cur.execute("SELECT 판매처 FROM oops where 판매처 like '%"+text+"%' or PCODE like '%"+text+"%'")
         
         result = [row[0] for row in self.cur]
         # print(result)
@@ -152,8 +160,19 @@ class MainWindow(QtWidgets.QMainWindow):
             except:
                 self.ui.tableWidget.setItem( x,1,QTableWidgetItem(""))
             x=x+1
-        # print(result)    
-    
+        if int(xrow) > 0:
+            acceptence = "수납불가"
+            acceptence_color = QColor(252,0,0)
+            acceptence_bcolor = QColor(252,226,254)
+        else:
+            acceptence = "수납가능"
+            acceptence_color = QColor(0,0,0)
+            acceptence_bcolor = QColor(224,254,254)
+        
+        self.ui.tableWidget.setItem( x,1,QTableWidgetItem(acceptence))
+        self.ui.tableWidget.item(x,1).setForeground(acceptence_color)
+        self.ui.tableWidget.item(x,1).setBackground(acceptence_bcolor)
+
     def loadData(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, '엑셀파일 선택', "*.xlsx")
         self.dataProcess(fname[0], "데이터가 저장되었습니다")
@@ -190,10 +209,16 @@ class MainWindow(QtWidgets.QMainWindow):
         # print(angels)
         if message:
             QtWidgets.QMessageBox.about(None, "완료", message)
-        self.cur.execute("""SELECT * FROM oops""")
-        all_rows = self.cur.fetchall()
-        for i in all_rows:
-            print(i)
+        # self.cur.execute("""SELECT * FROM oops""")
+        # all_rows = self.cur.fetchall()
+        # for i in all_rows:
+        #     print(i)
+    
+    def open_environment(self):
+        popui = Ui_Dialog()
+        popui.setModal(true)   
+        # popui.setupUi(self)
+        popui.exec()
 
         
 
