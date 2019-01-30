@@ -37,7 +37,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.ui.setupUi(self)
         self.creater()
-        self.download("http://haeam.zz.am/rex.xlsx","rex.xlsx")
+        # self.download("\\\\DESKTOP-F5M53ID\\Users\\신문수\\Desktop\\공유폴더테스트\\rex.xlsx")
+        self.dataProcess("\\\\DESKTOP-F5M53ID\\Users\\신문수\\Desktop\\공유폴더테스트\\rex.xlsx","")
         # super(MainWindow, self).__init__(parent=parent)
         
         # self.tableFields = ["검색어","광고진행여부","검색카테고리"]
@@ -87,17 +88,17 @@ class MainWindow(QtWidgets.QMainWindow):
         # QtCore.QObject.connect(self.ui.actionExit, QtCore.SIGNAL("toggled(bool)"), OopsProject.close)
         # msg.setText("This is a message box")
     
-    def download(self, url, file_name):
-        self.ui.statusbar.showMessage("데이터를 다운로드 중입니다.")
-        # open in binary mode
-        with open(file_name, "wb") as file:
-            # get request
-            response = get(url)
-            # write to file
-            file.write(response.content)
-        self.ui.statusbar.showMessage("원격 데이터가져오기 완료")
-        # print("원격 데이터가져오기 완료")
-        self.dataProcess("rex.xlsx","")
+    # def download(self, url, file_name):
+    #     self.ui.statusbar.showMessage("데이터를 다운로드 중입니다.")
+    #     # open in binary mode
+    #     with open(file_name, "wb") as file:
+    #         # get request
+    #         response = get(url)
+    #         # write to file
+    #         file.write(response.content)
+    #     self.ui.statusbar.showMessage("원격 데이터가져오기 완료")
+    #     # print("원격 데이터가져오기 완료")
+    #     self.dataProcess("rex.xlsx","")
 
     def creater(self):
         self.ui.statusbar.showMessage("데이터 구성중입니다.")
