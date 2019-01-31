@@ -48,12 +48,12 @@ class Ui_Dialog(object):
         self.label.setObjectName("label")
 
         self.retranslateUi(Dialog)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), Dialog.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), Dialog.reject)
+        # QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), Dialog.accept)
+        # QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QtWidgets.QApplication.translate("Dialog", "Dialog", None, -1))
+        Dialog.setWindowTitle(QtWidgets.QApplication.translate("Dialog", "환경설정", None, -1))
         self.groupBox.setTitle(QtWidgets.QApplication.translate("Dialog", "서버경로 (공유폴더경로)", None, -1))
         self.groupBox_2.setTitle(QtWidgets.QApplication.translate("Dialog", "관리자권한 비밀번호", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("Dialog", "서버경로에 파일을 저장할 수 있는 권한을 부여합니다.", None, -1))
