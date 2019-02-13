@@ -1,5 +1,5 @@
 ('C:\\workspace\\oops\\build\\search_store\\search_store.exe',
- True,
+ False,
  False,
  True,
  None,
@@ -35,7 +35,7 @@
  [],
  False,
  False,
- 1548924081,
- [('run.exe',
-   'C:\\Users\\신문수\\AppData\\Local\\Programs\\Python\\Python37\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\run.exe',
+ 1549846628,
+ [('runw.exe',
+   'C:\\Users\\신문수\\AppData\\Local\\Programs\\Python\\Python37\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\runw.exe',
    'EXECUTABLE')])

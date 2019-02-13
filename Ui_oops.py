@@ -80,7 +80,7 @@ class Ui_OopsProject(object):
         self.label.setText(QtWidgets.QApplication.translate("OopsProject", "검색된 판매처", None, -1))
         self.label_2.setText(QtWidgets.QApplication.translate("OopsProject", "판매처 정보", None, -1))
         self.menu.setTitle(QtWidgets.QApplication.translate("OopsProject", "파일", None, -1))
-        self.actionLoad_Data.setText(QtWidgets.QApplication.translate("OopsProject", "판매점 전체 읽어오기", None, -1))
+        self.actionLoad_Data.setText(QtWidgets.QApplication.translate("OopsProject", "판매점 데이터 올리기", None, -1))
         self.actionLoad_Data.setShortcut(QtWidgets.QApplication.translate("OopsProject", "Ctrl+L", None, -1))
         self.actionExit.setText(QtWidgets.QApplication.translate("OopsProject", "종료", None, -1))
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("OopsProject", "Ctrl+Q", None, -1))

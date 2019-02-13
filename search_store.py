@@ -12,7 +12,7 @@ from Ui_oops import Ui_OopsProject
 from Ui_environment import Ui_Dialog
 from openpyxl import load_workbook
 
-from requests import get
+# from requests import get
 
 from PySide2 import QtCore, QtGui, QtWidgets
 dirname = os.path.dirname(PySide2.__file__)
@@ -33,6 +33,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.ui = Ui_OopsProject()        
         self.ui.setupUi(self)
+        self.combo_change_chk = 1
         self.db = "oops.db"
         self.version = "version"
         self.config = "config"
@@ -44,6 +45,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if rt:
             #버전체크를 한다.
             self.versionCheck()
+        
+        self.loadDb()
 
         self.ui.tableWidget.setStyleSheet("font: 12px \"맑은 고딕\";")
         
@@ -64,6 +67,42 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.tableWidget.setColumnWidth(1, 170)
             self.ui.tableWidget.setItem( x,0,QTableWidgetItem(title[x]))
         
+
+        # if int(xrow) < 0:
+        #             acceptence = "수납불가"
+        #             acceptence_color = QColor(252,0,0)
+        #             acceptence_bcolor = QColor(252,226,254)
+        #         else:
+        #             acceptence = "수납가능"
+        #             acceptence_color = QColor(0,0,0)
+        #             acceptence_bcolor = QColor(224,254,254)
+        
+                
+        #         self.ui.tableWidget.setItem( x,1,QTableWidgetItem(acceptence)) 
+
+        self.combo = QComboBox()
+        # self.combo.setEditable(True)
+        model = self.combo.model()
+        # combo_box_options = ["수납가능","수납불가"]
+        # for t in combo_box_options:
+        # self.combo.setStyleSheet('color: rgb(255,0,0)')
+        self.combo.setStyleSheet("QComboBox:editable{{ color: {} }}".format("red"))
+        item = QStandardItem(str('수납불가'))
+        item.setForeground(QColor('red'))
+        model.appendRow(item)
+        item = QStandardItem(str('수납가능'))
+        item.setForeground(QColor('blue'))
+        model.appendRow(item)
+        self.combo.currentIndexChanged.connect(self.combo_changed)
+            # self.combo.addItem(t)
+        
+        
+
+        # self.combo.setItemData(0).setStyleSheet("weight : bold; font: 14px \"맑은 고딕\";background:#defcbc;")
+        # self.combo.itemData(0).setStyleSheet("weight : bold; font: 14px \"맑은 고딕\";background:#defcbc;")
+        self.ui.tableWidget.setCellWidget( x,1,self.combo)
+        
+
         QtCore.QObject.connect(self.ui.actionLoad_Data, QtCore.SIGNAL("triggered(bool)"), self.loadData)
         QtCore.QObject.connect(self.ui.actionExit, QtCore.SIGNAL("triggered(bool)"), self.close)
         QtCore.QObject.connect(self.ui.action, QtCore.SIGNAL("triggered(bool)"), self.open_environment)
@@ -71,6 +110,34 @@ class MainWindow(QtWidgets.QMainWindow):
         QtCore.QObject.connect(self.ui.lineEdit, QtCore.SIGNAL("returnPressed()"), self.search)
         QtCore.QObject.connect(self.ui.listWidget, QtCore.SIGNAL("itemSelectionChanged()"), self.deep_search)
     
+    def combo_changed(self):
+        
+    
+        판매처 = self.ui.listWidget.currentItem().text()
+        # print(판매처)
+        선택 = self.combo.currentText()
+        if 선택 == "수납가능":
+            sel = 0
+            self.combo.setStyleSheet("QComboBox:editable{{ color: {} }}".format("blue"))
+        else:
+            sel = -1
+            self.combo.setStyleSheet("QComboBox:editable{{ color: {} }}".format("red"))
+        # print(선택)
+        if self.combo_change_chk == 1:
+            if self.info[1] == "anna":
+                # print("change","update oops set 수납가능여부='"+str(sel)+"' where 판매처='"+판매처+"'")
+                if self.cur.execute("update oops set 수납가능여부='"+str(sel)+"' where 판매처='"+판매처+"'"):
+                    print("Success Update")
+                else:
+                    print("Failed")
+                self.con.commit()
+                self.versionUpdate()
+                shutil.copy(self.db, self.info[0]+"/"+self.db)
+                shutil.copy(self.version, self.info[0]+"/"+self.version)
+            else:
+                QtWidgets.QMessageBox.warning(None, "경고", "관리자만 상태를 변경할 수 있습니다.")
+
+
     #환경설정을 읽어온다.
     def loadEnvironment(self):
         try:
@@ -89,18 +156,19 @@ class MainWindow(QtWidgets.QMainWindow):
         except:
             local_version = "0"
             pass
+        # print("local version:", local_version)
         try:
             f = open(self.info[0]+"/"+self.version, "r")
             remote_version = f.read()
             f.close()
-            print(local_version, remote_version)
+            # print(local_version, remote_version)
             if local_version != remote_version:
                 
                 shutil.copy(self.info[0]+"/"+self.db, self.db)
                 shutil.copy(self.info[0]+"/"+self.version, self.version)
                 QtWidgets.QMessageBox.about(None, "데이터갱신", "서버 데이터가 갱신되었습니다")
                 #로컬데이터베이스를 연결한다.
-            self.loadDb()
+                self.loadDb()
 
         except:
             QtWidgets.QMessageBox.warning(None, "버전체크실패", "서버에 데이터가 없습니다. 서버에 데이터를 업로드해야 합니다.")
@@ -135,7 +203,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def deep_search(self):
         판매처 = self.ui.listWidget.currentItem().text()   
 
-        self.cur.execute("SELECT * FROM oops where 판매처='"+판매처+"'")
+        self.cur.execute("SELECT 영업그룹,판매처,PCODE,핸드폰번호,핸드폰번호2,전화번호,전일미수,수납가능여부 FROM oops where 판매처='"+판매처+"'")
+        # self.cur.execute("SELECT 영업그룹,판매처,PCODE,핸드폰번호,핸드폰번호2,전화번호,수납가능여부,수납가능여부 FROM oops where 판매처='"+판매처+"'")
         x=0
         # print(self.cur.fetchall()[0])
         for row in self.cur.fetchall()[0]:
@@ -147,19 +216,31 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.tableWidget.setItem( x,1,QTableWidgetItem(xrow))
             except:
                 self.ui.tableWidget.setItem( x,1,QTableWidgetItem(""))
-            x=x+1
-        if int(xrow) > 0:
-            acceptence = "수납불가"
-            acceptence_color = QColor(252,0,0)
-            acceptence_bcolor = QColor(252,226,254)
-        else:
-            acceptence = "수납가능"
-            acceptence_color = QColor(0,0,0)
-            acceptence_bcolor = QColor(224,254,254)
+            
+            
+            if x == 7:
+                self.combo_change_chk = 0
+                if xrow == "0":
+                    self.combo.setCurrentIndex(1)
+                else:
+                    self.combo.setCurrentIndex(0)
+                self.combo_change_chk = 1
+                
+            #     if int(xrow) < 0:
+            #         acceptence = "수납불가"
+            #         acceptence_color = QColor(252,0,0)
+            #         acceptence_bcolor = QColor(252,226,254)
+            #     else:
+            #         acceptence = "수납가능"
+            #         acceptence_color = QColor(0,0,0)
+            #         acceptence_bcolor = QColor(224,254,254)
         
-        self.ui.tableWidget.setItem( x,1,QTableWidgetItem(acceptence))
-        self.ui.tableWidget.item(x,1).setForeground(acceptence_color)
-        self.ui.tableWidget.item(x,1).setBackground(acceptence_bcolor)
+                
+            #     self.ui.tableWidget.setItem( x,1,QTableWidgetItem(acceptence)) 
+            #     # self.ui.tableWidget.setItem( x,1,QTableWidgetItem(acceptence))
+            #     self.ui.tableWidget.item(x,1).setForeground(acceptence_color)
+            #     self.ui.tableWidget.item(x,1).setBackground(acceptence_bcolor)
+            x=x+1
 
     def loadData(self):
         try:
@@ -174,18 +255,15 @@ class MainWindow(QtWidgets.QMainWindow):
         # try:            
         
             self.loadDb()
-            print("1")
             self.creater()
-            print("2")
             self.excelToData(fname)
-            print("3")
             
             shutil.copy(self.db, self.info[0]+"/"+self.db)
             shutil.copy(self.version, self.info[0]+"/"+self.version)
         else:
             QtWidgets.QMessageBox.warning(None, "경고", "관리자만 데이터읽어오기가 가능합니다.")
         # except:
-        #     QtWidgets.QMessageBox.warning(None, "경고", "환경설정에서 관리자 비밀번호가 필요합니다.")
+        #     QtWidgets.QMessageBox.warning(None, "경고", "환경설정에서 관리자 비밀번호가 필요합니다...")
     
     def versionUpdate(self):
         try:
@@ -196,18 +274,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         f = open(self.version,"w")
         f.write(str(version))
+        # f.close()
 
     def excelToData(self, fname):
 
         angelEx=load_workbook(filename=fname[0])
 
         #불러온 엑셀 파일 중 데이터를 찾을 sheet의 이름을 입력합니다.
-        렉스거래처 = angelEx['렉스거래처']
+
+        거래처리스트 = angelEx['거래처리스트']
         #Sheet1의 D4의 값을 출력합니다.
 
         #루프문을 이용해 sheet의 여러 행에 있는 데이터를 불러옵니다.\
-        x1 = (3,4,6,14,15,24)
-        for i in 렉스거래처.rows:
+        x1 = (6,4,7,13,14,11,19)
+        for i in 거래처리스트.rows:
             # print(len(i),i[1].value,i[10].value,i[15].value)
             angel = []
             for c in x1:
@@ -216,7 +296,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 angel.append(a)
             angel.append(0)
             
-            self.cur.execute("""insert into oops values(?,?,?,?,?,?,?)""", angel)
+            self.cur.execute("""insert into oops values(?,?,?,?,?,?,?,?)""", angel)
  
         미수금 = angelEx['Sheet1']
         for i in 미수금.rows:
@@ -238,13 +318,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.showMessage("데이터 구성중입니다.")
 
         self.cur.execute("DROP TABLE IF EXISTS oops")
-        query = "CREATE TABLE oops(영업그룹 TEXT,판매처 TEXT,PCODE TEXT,핸드폰번호 TEXT,핸드폰번호2 TEXT,전화번호 TEXT, 전일미수 INT);" # 테이블 생성 쿼리
+        query = "CREATE TABLE oops(영업그룹 TEXT,판매처 TEXT,PCODE TEXT,핸드폰번호 TEXT,핸드폰번호2 TEXT,전화번호 TEXT,수납가능여부 INT, 전일미수 INT);" # 테이블 생성 쿼리
         self.cur.execute(query)              # 쿼리 실행
         self.con.commit()
 
     def loadDb(self):
         self.con = sqlite3.connect(self.db)
         self.cur = self.con.cursor()
+        # self.cur.execute("update oops set 수납가능여부=-1 where PCODE='P85032'")
     
     
     def open_environment(self):
